@@ -27,7 +27,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.AsyncTask;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings.Secure;
 import android.util.Log;
 
@@ -80,7 +82,7 @@ public final class DistimoSDK {
 	 */
 	public static void onCreate(Context c, String sdkKey) {
 		if (sdkKey != null && !started) {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "onCreate(" + sdkKey + ")"); }
+			if (Utils.DEBUG) { Log.i(TAG, "onCreate(" + sdkKey + ")"); }
 			
 			started = true;
 			
@@ -97,13 +99,16 @@ public final class DistimoSDK {
 				try {
 					appVersion = context.getPackageManager().getPackageInfo(DistimoSDK.bundleID, 0).versionName;
 				} catch (final NameNotFoundException nnfe) {
-					if (BuildConfig.DEBUG) { nnfe.printStackTrace(); }
+					if (Utils.DEBUG) { nnfe.printStackTrace(); }
 					appVersion = "0";
 				}
 				
 				//Generate IDs
 				generateUniqueUserID();
 				generateUniqueHardwareID(context);
+				
+				//Make sure an AsyncTask is created on the UI thread first
+				fixAsyncTaskBug();
 				
 				//Initialize the EventManager
 				EventManager.initialize(context);
@@ -131,7 +136,7 @@ public final class DistimoSDK {
 			Event registeredEvent = new Event("UserRegistered", null, null);
 			DistimoSDK.sendEvent(registeredEvent);
 		} else {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "User already marked as registered"); }
+			if (Utils.DEBUG) { Log.i(TAG, "User already marked as registered"); }
 		}
 	}
 	
@@ -226,7 +231,7 @@ public final class DistimoSDK {
 			Event userIdEvent = new Event("UserID", params, null);
 			DistimoSDK.sendEvent(userIdEvent);
 		} else {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "UserID already set as " + newUserID); }
+			if (Utils.DEBUG) { Log.i(TAG, "UserID already set as " + newUserID); }
 		}
 	}
 	
@@ -275,10 +280,10 @@ public final class DistimoSDK {
 					//Generate a unique ID based on the ANDROID_ID
 					hexString = UUID.nameUUIDFromBytes(androidID.getBytes("UTF-8")).toString().replace("-", "").toLowerCase();
 				} catch (final UnsupportedEncodingException uee) {
-					if (BuildConfig.DEBUG) { uee.printStackTrace(); }
+					if (Utils.DEBUG) { uee.printStackTrace(); }
 				} catch (final AssertionError ae) {
 					//Apparently this method can also throw an AssertionError
-					if (BuildConfig.DEBUG) { ae.printStackTrace(); }
+					if (Utils.DEBUG) { ae.printStackTrace(); }
 				}
 			}
 		}
@@ -306,7 +311,7 @@ public final class DistimoSDK {
 	//-- EVENT SENDING --//
 	
 	protected static void sendEvent(Event event) {
-		if (BuildConfig.DEBUG) { Log.i(TAG, "sendEvent()"); }
+		if (Utils.DEBUG) { Log.i(TAG, "sendEvent()"); }
 		
 		EventManager.logEvent(event);
 	}
@@ -317,7 +322,7 @@ public final class DistimoSDK {
 		if (started) {
 			DistimoSDK.checkFirstLaunch(context);
 		} else {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "DistimoSDK not active, not sending INSTALL_REFERRER params"); }
+			if (Utils.DEBUG) { Log.i(TAG, "DistimoSDK not active, not sending INSTALL_REFERRER params"); }
 		}
 	}
 	
@@ -331,12 +336,12 @@ public final class DistimoSDK {
 			Map<String, String> params = InstallReferrerReceiver.getInstallReferrerParams(context);
 			
 			if (!params.isEmpty()) {
-				if (BuildConfig.DEBUG) { Log.i(TAG, "Found INSTALL_REFERRER params, skipping delayed check"); }
+				if (Utils.DEBUG) { Log.i(TAG, "Found INSTALL_REFERRER params, skipping delayed check"); }
 				
 				//Send immediately
 				checkFirstLaunch(context);
 			} else if (!emptyReported) {
-				if (BuildConfig.DEBUG) { Log.i(TAG, "FirstLaunch not yet reported, starting delayed check"); }
+				if (Utils.DEBUG) { Log.i(TAG, "FirstLaunch not yet reported, starting delayed check"); }
 				
 				firstLaunchRunnable = new Runnable() {
 					public void run() {
@@ -351,10 +356,10 @@ public final class DistimoSDK {
 				firstLaunchHandler = new Handler();
 				firstLaunchHandler.postDelayed(firstLaunchRunnable, FIRSTLAUNCH_DELAY);
 			} else {
-				if (BuildConfig.DEBUG) { Log.i(TAG, "Empty FirstLaunch already reported, not starting delayed check"); }
+				if (Utils.DEBUG) { Log.i(TAG, "Empty FirstLaunch already reported, not starting delayed check"); }
 			}
 		} else {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "FirstLaunch already reported, not starting delayed check"); }
+			if (Utils.DEBUG) { Log.i(TAG, "FirstLaunch already reported, not starting delayed check"); }
 		}
 	}
 	
@@ -371,20 +376,20 @@ public final class DistimoSDK {
 			params = InstallReferrerReceiver.getInstallReferrerParams(context);
 			
 			if (!params.isEmpty()) {
-				if (BuildConfig.DEBUG) { Log.i(TAG, "Found INSTALL_REFERRER params"); }
+				if (Utils.DEBUG) { Log.i(TAG, "Found INSTALL_REFERRER params"); }
 
 				//Send the parameters (not necessarily our parameters)
 				installEvent = new Event("FirstLaunch", params, null);
 			} else if (!emptyReported) {
-				if (BuildConfig.DEBUG) { Log.i(TAG, "Reporting organic FirstLaunch"); }
+				if (Utils.DEBUG) { Log.i(TAG, "Reporting organic FirstLaunch"); }
 
 				//Send an empty FirstLaunch event
 				installEvent = new Event("FirstLaunch", null, null);
 			} else {
-				if (BuildConfig.DEBUG) { Log.i(TAG, "Organic FirstLaunch already reported"); }
+				if (Utils.DEBUG) { Log.i(TAG, "Organic FirstLaunch already reported"); }
 			}
 		} else {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "FirstLaunch with INSTALL_REFERRER already reported"); }
+			if (Utils.DEBUG) { Log.i(TAG, "FirstLaunch with INSTALL_REFERRER already reported"); }
 		}
 
 		if (installEvent != null) {
@@ -402,7 +407,7 @@ public final class DistimoSDK {
 	}
 	
 	private static void setFirstLaunchSent(boolean isEmpty) {
-		if (BuildConfig.DEBUG) { Log.i(TAG, "setFirstLaunchSent(" + (isEmpty ? "empty" : "with_params") + ")"); }
+		if (Utils.DEBUG) { Log.i(TAG, "setFirstLaunchSent(" + (isEmpty ? "empty" : "with_params") + ")"); }
 		
 		//Don't clear the INSTALL_REFERRER
 		//InstallReferrerReceiver.clearInstallReferrerParams();
@@ -411,6 +416,31 @@ public final class DistimoSDK {
 			preferences.edit().putBoolean(PREFERENCES_FIRSTLAUNCH_EMPTY, true).commit();
 		} else {
 			preferences.edit().putBoolean(PREFERENCES_FIRSTLAUNCH_PARAMS, true).commit();
+		}
+	}
+	
+	private static void fixAsyncTaskBug() {
+		//There is an issue with the class loader for AsyncTask
+		//e.g. http://grokbase.com/p/gg/android-developers/11ajf99wrs/possible-bug-in-asynctask
+		
+		Runnable runnable = new Runnable() {
+			@Override
+			public void run() {
+				new AsyncTask<Void, Void, Void>() {
+					@Override
+					protected Void doInBackground(Void... params) {
+						return null;
+					}
+				};
+			}
+		};
+		
+		if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
+			//Already on the UI thread, just run
+			runnable.run();
+		} else {
+			//Post this on the UI thread
+			new Handler(Looper.getMainLooper()).post(runnable);
 		}
 	}
 }

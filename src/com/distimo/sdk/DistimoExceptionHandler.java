@@ -61,7 +61,7 @@ final class DistimoExceptionHandler implements UncaughtExceptionHandler {
 	}
 
 	public void uncaughtException(Thread thread, Throwable ex) {
-		if (BuildConfig.DEBUG) { ex.printStackTrace(); }
+		if (Utils.DEBUG) { ex.printStackTrace(); }
 		
 		// Check for DistimoSDK involvement
 		if (this.preferences != null) {

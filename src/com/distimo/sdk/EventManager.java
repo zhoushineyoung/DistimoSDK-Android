@@ -61,7 +61,7 @@ final class EventManager {
     
     static void initialize(final Context context) {
 		synchronized (LOCK_OBJECT) {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "initialize()"); }
+			if (Utils.DEBUG) { Log.i(TAG, "initialize()"); }
 
 			initialized = true;
 			
@@ -77,7 +77,7 @@ final class EventManager {
 						eventStorage = new EventStorage(context);
 						eventsList = eventStorage.getEvents();
 					} catch (Throwable t) {
-						if (BuildConfig.DEBUG) { t.printStackTrace(); }
+						if (Utils.DEBUG) { t.printStackTrace(); }
 					} finally {
 						//Make sure the events list is created, event when the storage failed 
 						if (eventsList == null) {
@@ -85,7 +85,7 @@ final class EventManager {
 						}
 					}
 
-					if (BuildConfig.DEBUG) { Log.i(TAG, "Found " + eventsList.size() + " event(s)"); }
+					if (Utils.DEBUG) { Log.i(TAG, "Found " + eventsList.size() + " event(s)"); }
 
 					sendNextEvent();
 				}
@@ -97,7 +97,7 @@ final class EventManager {
     
     static void logEvent(final Event event) {
 		synchronized (LOCK_OBJECT) {
-			if (BuildConfig.DEBUG) { Log.e(TAG, "logEvent(" + event.name + ")"); }
+			if (Utils.DEBUG) { Log.e(TAG, "logEvent(" + event.name + ")"); }
 			
 			if (!initialized) {
 				return;
@@ -119,43 +119,43 @@ final class EventManager {
 	// -- Private methods -- //
     
     private static void storeEvent(Event event) {
-    	if (BuildConfig.DEBUG) { Log.i(TAG, "storeEvent(" + event.name + ")"); }
+    	if (Utils.DEBUG) { Log.i(TAG, "storeEvent(" + event.name + ")"); }
     	
     	try {
     		eventStorage.storeEvent(event);
     	} catch (Throwable t) {
-    		if (BuildConfig.DEBUG) { t.printStackTrace(); }
+    		if (Utils.DEBUG) { t.printStackTrace(); }
     	}
     	
     	eventsList.add(event);
     }
     
     private static void removeEvent(Event event) {
-    	if (BuildConfig.DEBUG) { Log.i(TAG, "removeEvent(" + event.name + ")"); }
+    	if (Utils.DEBUG) { Log.i(TAG, "removeEvent(" + event.name + ")"); }
     	
     	try {
     		eventStorage.removeEvent(event);
     	} catch (Throwable t) {
-    		if (BuildConfig.DEBUG) { t.printStackTrace(); }
+    		if (Utils.DEBUG) { t.printStackTrace(); }
     	}
     	
     	eventsList.remove(event);
     }
     
 	private static void sendEvent(Event event) {
-		if (BuildConfig.DEBUG) { Log.i(TAG, "sendEvent(" + event.name + ")"); }
+		if (Utils.DEBUG) { Log.i(TAG, "sendEvent(" + event.name + ")"); }
 		
 		eventSender = new EventSenderTask();
 		eventSender.execute(event);
 	}
 	
 	private static void sendNextEvent() {
-		if (BuildConfig.DEBUG) { Log.i(TAG, "sendNextEvent()"); }
+		if (Utils.DEBUG) { Log.i(TAG, "sendNextEvent()"); }
 		
 		if (eventsList.size() > 0) {
 			sendEvent(eventsList.get(0));
 		} else {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "No more events to send"); }
+			if (Utils.DEBUG) { Log.i(TAG, "No more events to send"); }
 		}
 	}
 	
@@ -163,7 +163,7 @@ final class EventManager {
 	
 	private static void onEventSent(final Event event) {
 		synchronized (LOCK_OBJECT) {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "onEventSent(" + event.name + ")"); }
+			if (Utils.DEBUG) { Log.i(TAG, "onEventSent(" + event.name + ")"); }
 
 			eventSender = null;
 
@@ -181,7 +181,7 @@ final class EventManager {
 	
 	private static void onEventFailed(final Event event) {
 		synchronized (LOCK_OBJECT) {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "onEventFailed(" + event.name + ")"); }
+			if (Utils.DEBUG) { Log.i(TAG, "onEventFailed(" + event.name + ")"); }
 
 			eventSender = null;
 
@@ -222,7 +222,7 @@ final class EventManager {
 		 * Use this constructor for a stored event.
 		 */
 		Event(long id, String name, Map<String, String> params, String postData, long timestamp, String bundleID, String appVersion, String sdkVersion) {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "Event()"); }
+			if (Utils.DEBUG) { Log.i(TAG, "Event()"); }
 			
 			this.id = id;
 			this.name = name;
@@ -240,7 +240,7 @@ final class EventManager {
 		}
 		
 		String urlParamString() {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "Event.urlParamString()"); }
+			if (Utils.DEBUG) { Log.i(TAG, "Event.urlParamString()"); }
 			
 			String result = this.urlParamPayload();
 			result += "&ct=" + System.currentTimeMillis();
@@ -250,7 +250,7 @@ final class EventManager {
 		}
 		
 		private String urlParamPayload() {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "Event.urlParamPayload()"); }
+			if (Utils.DEBUG) { Log.i(TAG, "Event.urlParamPayload()"); }
 			
 			String result = "en=" + this.name;
 			
@@ -267,7 +267,7 @@ final class EventManager {
 				try {
 					result += "&ep=" + URLEncoder.encode(this.parameterString(), "UTF-8");
 				} catch (final UnsupportedEncodingException uee) {
-					if (BuildConfig.DEBUG) { uee.printStackTrace(); }
+					if (Utils.DEBUG) { uee.printStackTrace(); }
 				}
 			}
 			
@@ -276,7 +276,7 @@ final class EventManager {
 		
 		private String parameterString() {
 			if (this.params != null) {
-				if (BuildConfig.DEBUG) { Log.i(TAG, "Event.parameterString()"); }
+				if (Utils.DEBUG) { Log.i(TAG, "Event.parameterString()"); }
 
 				String result = "";
 
@@ -289,7 +289,7 @@ final class EventManager {
 						}
 						result += key + "=" + value;
 					} catch (final UnsupportedEncodingException uee) {
-						if (BuildConfig.DEBUG) { uee.printStackTrace(); }
+						if (Utils.DEBUG) { uee.printStackTrace(); }
 						continue;
 					}
 				}
@@ -301,25 +301,25 @@ final class EventManager {
 		}
 		
 		private void calculateChecksum() {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "Event.calculateChecksum()"); }
+			if (Utils.DEBUG) { Log.i(TAG, "Event.calculateChecksum()"); }
 			
 			String getPayload = Utils.md5(this.urlParamPayload());
-			if (BuildConfig.DEBUG) { Log.i(TAG, "Hashing " + this.urlParamPayload() + " --> " + getPayload); }
+			if (Utils.DEBUG) { Log.i(TAG, "Hashing " + this.urlParamPayload() + " --> " + getPayload); }
 			
 			String payload = null;
 			
 			if (this.postData != null) {
 				String postPayload = Utils.md5(this.postData);
-				if (BuildConfig.DEBUG) { Log.i(TAG, "Hashing " + this.postData + " --> " + postPayload); }
+				if (Utils.DEBUG) { Log.i(TAG, "Hashing " + this.postData + " --> " + postPayload); }
 				
 				payload = Utils.md5(getPayload + postPayload);
-				if (BuildConfig.DEBUG) { Log.i(TAG, "Hashing " + getPayload + postPayload + " --> " + payload); }
+				if (Utils.DEBUG) { Log.i(TAG, "Hashing " + getPayload + postPayload + " --> " + payload); }
 			} else {
 				payload = getPayload;
 			}
 			
 			String result = Utils.md5(payload + DistimoSDK.privateKey);
-			if (BuildConfig.DEBUG) { Log.i(TAG, "Hashing " + payload + DistimoSDK.privateKey + " --> " + result); }
+			if (Utils.DEBUG) { Log.i(TAG, "Hashing " + payload + DistimoSDK.privateKey + " --> " + result); }
 			
 			this.checksum = result;
 		}
@@ -337,12 +337,12 @@ final class EventManager {
 		
 		@Override
 	    protected Boolean doInBackground(Event... uri) {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "EventSenderTask.doInBackground(), delaying for " + delay + "ms"); }
+			if (Utils.DEBUG) { Log.i(TAG, "EventSenderTask.doInBackground(), delaying for " + delay + "ms"); }
 			
 			try {
 				Thread.sleep(delay);
 			} catch (InterruptedException e) {
-				if (BuildConfig.DEBUG) { e.printStackTrace(); }
+				if (Utils.DEBUG) { e.printStackTrace(); }
 			}
 			
 			Boolean result = false;
@@ -356,7 +356,7 @@ final class EventManager {
 				this.event = uri[0];
 				
 				final String urlString = EVENT_URL + "?" + this.event.urlParamString();
-				if (BuildConfig.DEBUG) { Log.i("EventSenderTask", "Calling: " + urlString); }
+				if (Utils.DEBUG) { Log.i("EventSenderTask", "Calling: " + urlString); }
 				
 				HttpURLConnection urlConnection = null;
 				try {
@@ -364,7 +364,7 @@ final class EventManager {
 					urlConnection = (HttpURLConnection) url.openConnection();
 					
 					if (this.event.postData != null) {
-						if (BuildConfig.DEBUG) { Log.i(TAG, "Sending POST data: " + this.event.postData); }
+						if (Utils.DEBUG) { Log.i(TAG, "Sending POST data: " + this.event.postData); }
 						
 						byte[] buffer = this.event.postData.getBytes();
 						
@@ -387,9 +387,9 @@ final class EventManager {
 						result = true;
 					}
 				} catch (final MalformedURLException mue) {
-					if (BuildConfig.DEBUG) { Log.e(TAG, "Malformed URL: " + urlString); }
+					if (Utils.DEBUG) { Log.e(TAG, "Malformed URL: " + urlString); }
 				} catch (final Throwable t) {
-					if (BuildConfig.DEBUG) { t.printStackTrace(); }
+					if (Utils.DEBUG) { t.printStackTrace(); }
 				} finally {
 					if (urlConnection != null) {
 						urlConnection.disconnect();
@@ -402,16 +402,16 @@ final class EventManager {
 		
 	    @Override
 	    protected void onPostExecute(Boolean result) {
-	    	if (BuildConfig.DEBUG) { Log.i(TAG, "EventSenderTask.onPostExecute()"); }
+	    	if (Utils.DEBUG) { Log.i(TAG, "EventSenderTask.onPostExecute()"); }
 			
 	        super.onPostExecute(result);
 	        
 	        if (result == true) {
-	        	if (BuildConfig.DEBUG) { Log.i(TAG, "Event sent"); }
+	        	if (Utils.DEBUG) { Log.i(TAG, "Event sent"); }
 	        	
 	        	EventManager.onEventSent(event);
 	        } else {
-	        	if (BuildConfig.DEBUG) { Log.w(TAG, "Event failed"); }
+	        	if (Utils.DEBUG) { Log.w(TAG, "Event failed"); }
 	        	
 	        	EventManager.onEventFailed(event);
 	        }
@@ -478,37 +478,37 @@ final class EventManager {
 		
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "EventStorage.onCreate()"); }
+			if (Utils.DEBUG) { Log.i(TAG, "EventStorage.onCreate()"); }
 			
-			if (BuildConfig.DEBUG) { Log.i(TAG, "Executing statement: " + EVENTS_CREATE); }
+			if (Utils.DEBUG) { Log.i(TAG, "Executing statement: " + EVENTS_CREATE); }
 			db.execSQL(EVENTS_CREATE);
 			
-			if (BuildConfig.DEBUG) { Log.i(TAG, "Executing statement: " + EVENT_PARAMETERS_CREATE); }
+			if (Utils.DEBUG) { Log.i(TAG, "Executing statement: " + EVENT_PARAMETERS_CREATE); }
 			db.execSQL(EVENT_PARAMETERS_CREATE);
 			
-			if (BuildConfig.DEBUG) { Log.i(TAG, "Executing statement: " + EVENT_PARAMETERS_CREATE_INDEX); }
+			if (Utils.DEBUG) { Log.i(TAG, "Executing statement: " + EVENT_PARAMETERS_CREATE_INDEX); }
 			db.execSQL(EVENT_PARAMETERS_CREATE_INDEX);
 		}
 		
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "EventStorage.onUpgrade() " + oldVersion + " -> " + newVersion); }
+			if (Utils.DEBUG) { Log.i(TAG, "EventStorage.onUpgrade() " + oldVersion + " -> " + newVersion); }
 			
 			if (oldVersion < 2 && newVersion >= 2) {
-				if (BuildConfig.DEBUG) { Log.i(TAG, "Executing statement: " + EVENTS_ADD_SDKVERSION_COLUMN); }
+				if (Utils.DEBUG) { Log.i(TAG, "Executing statement: " + EVENTS_ADD_SDKVERSION_COLUMN); }
 				
 				db.execSQL(EVENTS_ADD_SDKVERSION_COLUMN);
 			}
 			
 			if (oldVersion < 3 && newVersion >= 3) {
-				if (BuildConfig.DEBUG) { Log.i(TAG, "Executing statement: " + EVENTS_ADD_POSTDATA_COLUMN); }
+				if (Utils.DEBUG) { Log.i(TAG, "Executing statement: " + EVENTS_ADD_POSTDATA_COLUMN); }
 				
 				db.execSQL(EVENTS_ADD_POSTDATA_COLUMN);
 			}
 		}
 		
 		boolean storeEvent(Event event) {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "EventStorage.storeEvent(" + event.name + " (" + event.id + "))"); }
+			if (Utils.DEBUG) { Log.i(TAG, "EventStorage.storeEvent(" + event.name + " (" + event.id + "))"); }
 			
 			//Assume failure
 			boolean result = false;
@@ -517,7 +517,7 @@ final class EventManager {
 			try {
 				database = this.getWritableDatabase();
 			} catch (final SQLiteException sqle) {
-				if (BuildConfig.DEBUG) { sqle.printStackTrace(); }
+				if (Utils.DEBUG) { sqle.printStackTrace(); }
 			}
 			
 			if (database != null) {
@@ -561,7 +561,7 @@ final class EventManager {
 						}
 					}
 				} catch (final SQLException se) {
-					if (BuildConfig.DEBUG) { se.printStackTrace(); }
+					if (Utils.DEBUG) { se.printStackTrace(); }
 					result = false;
 				}
 				
@@ -575,7 +575,7 @@ final class EventManager {
 		}
 		
 		boolean removeEvent(Event event) {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "EventStorage.removeEvent(" + event.name + " (" + event.id + "))"); }
+			if (Utils.DEBUG) { Log.i(TAG, "EventStorage.removeEvent(" + event.name + " (" + event.id + "))"); }
 			
 			//Assume failure
 			boolean result = false;
@@ -584,7 +584,7 @@ final class EventManager {
 			try {
 				database = this.getWritableDatabase();
 			} catch (final SQLiteException sqle) {
-				if (BuildConfig.DEBUG) { sqle.printStackTrace(); }
+				if (Utils.DEBUG) { sqle.printStackTrace(); }
 			}
 			
 			if (database != null) {
@@ -604,7 +604,7 @@ final class EventManager {
 					
 					result = true;
 				} catch (SQLException se) {
-					if (BuildConfig.DEBUG) { se.printStackTrace(); }
+					if (Utils.DEBUG) { se.printStackTrace(); }
 				}
 				
 				database.endTransaction();
@@ -616,14 +616,14 @@ final class EventManager {
 		}
 		
 		ArrayList<Event> getEvents() {
-			if (BuildConfig.DEBUG) { Log.i(TAG, "EventStorage.getEvents()"); }
+			if (Utils.DEBUG) { Log.i(TAG, "EventStorage.getEvents()"); }
 			ArrayList<Event> events = new ArrayList<Event>();
 			
 			SQLiteDatabase database = null;
 			try {
 				database = this.getReadableDatabase();
 			} catch (final SQLiteException sqle) {
-				if (BuildConfig.DEBUG) { sqle.printStackTrace(); }
+				if (Utils.DEBUG) { sqle.printStackTrace(); }
 			}
 
 			if (database != null) {

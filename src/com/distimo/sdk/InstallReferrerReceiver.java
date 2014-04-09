@@ -36,7 +36,7 @@ public final class InstallReferrerReceiver extends BroadcastReceiver {
 	
     @Override
     public void onReceive(Context context, Intent intent) {
-    	if (BuildConfig.DEBUG) { Log.i(TAG, "onReceive()"); }
+    	if (Utils.DEBUG) { Log.i(TAG, "onReceive()"); }
     	
     	// Workaround for Android security issue: http://code.google.com/p/android/issues/detail?id=16006
         try {
@@ -62,9 +62,9 @@ public final class InstallReferrerReceiver extends BroadcastReceiver {
             try {
                 referrer = URLDecoder.decode(referrer, "UTF-8");
             } catch (UnsupportedEncodingException e) {
-            	if (BuildConfig.DEBUG) { e.printStackTrace(); }
+            	if (Utils.DEBUG) { e.printStackTrace(); }
             } catch (Exception e) {
-            	if (BuildConfig.DEBUG) { e.printStackTrace(); }
+            	if (Utils.DEBUG) { e.printStackTrace(); }
             }
         }
         
@@ -76,7 +76,7 @@ public final class InstallReferrerReceiver extends BroadcastReceiver {
         try {
         	DistimoSDK.installReferrerUpdated(context);
         } catch (Exception e) {
-        	if (BuildConfig.DEBUG) { e.printStackTrace(); }
+        	if (Utils.DEBUG) { e.printStackTrace(); }
         }
     }
     
@@ -84,7 +84,7 @@ public final class InstallReferrerReceiver extends BroadcastReceiver {
      * Stores the referral parameters in the app's sharedPreferences.
      */
     static void storeInstallReferrerParams(Context context, Map<String, String> params) {
-    	if (BuildConfig.DEBUG) { Log.i(TAG, "storeInstallReferrerParams()"); }
+    	if (Utils.DEBUG) { Log.i(TAG, "storeInstallReferrerParams()"); }
     	
         SharedPreferences storage = context.getSharedPreferences(InstallReferrerReceiver.PREFERENCES_FILE_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = storage.edit();
@@ -108,7 +108,7 @@ public final class InstallReferrerReceiver extends BroadcastReceiver {
      * Returns a map with the Market Referral parameters pulled from the sharedPreferences.
      */
     static Map<String, String> getInstallReferrerParams(Context context) {
-    	if (BuildConfig.DEBUG) { Log.i(TAG, "retrieveInstallReferrerParams()"); }
+    	if (Utils.DEBUG) { Log.i(TAG, "retrieveInstallReferrerParams()"); }
     	
         installReferrerStorage = context.getSharedPreferences(InstallReferrerReceiver.PREFERENCES_FILE_NAME, Context.MODE_PRIVATE);
         

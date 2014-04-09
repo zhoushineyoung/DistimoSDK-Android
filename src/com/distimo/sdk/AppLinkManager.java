@@ -42,7 +42,7 @@ final class AppLinkManager {
 			return;
 		}
 		
-		if (BuildConfig.DEBUG) { Log.i(TAG, "openAppLink(" + (applinkHandle != null ? applinkHandle : "NULL") + ", " + (campaignHandle != null ? campaignHandle : "NULL") + ")"); }
+		if (Utils.DEBUG) { Log.i(TAG, "openAppLink(" + (applinkHandle != null ? applinkHandle : "NULL") + ", " + (campaignHandle != null ? campaignHandle : "NULL") + ")"); }
 		
 		if (activity != null && applinkHandle != null && applinkHandle.length() > 0) {
 			currentActivity = activity;
@@ -63,7 +63,7 @@ final class AppLinkManager {
 		AppLinkManager.showAppLink(applinkUrl, null);
 	}
 	private static void showAppLink(final String applinkUrl, final String fallbackUrl) {
-		if (BuildConfig.DEBUG) { Log.i(TAG, "showAppLink URL: " + (applinkUrl != null ? applinkUrl : "NULL")); }
+		if (Utils.DEBUG) { Log.i(TAG, "showAppLink URL: " + (applinkUrl != null ? applinkUrl : "NULL")); }
 		
 		if (applinkUrl != null) {
 			//Check if this is the main thread so it can be used in the runnable
@@ -73,7 +73,7 @@ final class AppLinkManager {
 				public void run() {
 					//First try the applinkUrl, if that failed try the fallbackUrl if it exists
 					if (!AppLinkManager.startActivity(applinkUrl)) {
-						if (BuildConfig.DEBUG) { Log.i(TAG, "showAppLink Fallback: " + (fallbackUrl != null ? fallbackUrl : "NULL")); }
+						if (Utils.DEBUG) { Log.i(TAG, "showAppLink Fallback: " + (fallbackUrl != null ? fallbackUrl : "NULL")); }
 						
 						if (fallbackUrl != null) {
 							AppLinkManager.startActivity(fallbackUrl);
@@ -85,7 +85,7 @@ final class AppLinkManager {
 						try {
 							this.notify();
 						} catch (IllegalMonitorStateException e) {
-							if (BuildConfig.DEBUG) { e.printStackTrace(); }
+							if (Utils.DEBUG) { e.printStackTrace(); }
 						}
 					}
 				}
@@ -101,7 +101,7 @@ final class AppLinkManager {
 					try {
 						action.wait();
 					} catch (InterruptedException e) {
-						if (BuildConfig.DEBUG) { e.printStackTrace(); }
+						if (Utils.DEBUG) { e.printStackTrace(); }
 					}
 				}
 			}
@@ -136,7 +136,7 @@ final class AppLinkManager {
 		
 		@Override
 	    protected Boolean doInBackground(String... uri) {
-			if (BuildConfig.DEBUG) { Log.i("AppLinkTask", "doInBackground()"); }
+			if (Utils.DEBUG) { Log.i("AppLinkTask", "doInBackground()"); }
 			
 			Boolean result = false;
 			
@@ -148,7 +148,7 @@ final class AppLinkManager {
 			if (uri != null) {
 				this.applinkUrl = uri[0];
 				
-				if (BuildConfig.DEBUG) { Log.i("AppLinkTask", "Calling: " + this.applinkUrl); }
+				if (Utils.DEBUG) { Log.i("AppLinkTask", "Calling: " + this.applinkUrl); }
 				
 				HttpURLConnection urlConnection = null;
 				try {
@@ -165,9 +165,9 @@ final class AppLinkManager {
 						}
 					}
 				} catch (final MalformedURLException mue) {
-					if (BuildConfig.DEBUG) { Log.e("AppLinkTask", "Malformed URL: " + this.applinkUrl); }
+					if (Utils.DEBUG) { Log.e("AppLinkTask", "Malformed URL: " + this.applinkUrl); }
 				} catch (final Throwable t) {
-					if (BuildConfig.DEBUG) { t.printStackTrace(); }
+					if (Utils.DEBUG) { t.printStackTrace(); }
 				} finally {
 					if (urlConnection != null) {
 						urlConnection.disconnect();
@@ -180,16 +180,16 @@ final class AppLinkManager {
 		
 	    @Override
 	    protected void onPostExecute(Boolean result) {
-	    	if (BuildConfig.DEBUG) { Log.i("AppLinkTask", "onPostExecute()"); }
+	    	if (Utils.DEBUG) { Log.i("AppLinkTask", "onPostExecute()"); }
 			
 	        super.onPostExecute(result);
 	        
 	        if (result == true) {
-	        	if (BuildConfig.DEBUG) { Log.i("AppLinkTask", "302 received, opening Market URL"); }
+	        	if (Utils.DEBUG) { Log.i("AppLinkTask", "302 received, opening Market URL"); }
 	        	
 	        	AppLinkManager.showAppLink(this.marketUrl, this.applinkUrl);
 	        } else {
-	        	if (BuildConfig.DEBUG) { Log.w("AppLinkTask", "Redirect failed, opening AppLink URL"); }
+	        	if (Utils.DEBUG) { Log.w("AppLinkTask", "Redirect failed, opening AppLink URL"); }
 	        	
 	        	AppLinkManager.showAppLink(this.applinkUrl);
 	        }

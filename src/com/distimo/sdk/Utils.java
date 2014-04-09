@@ -28,11 +28,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.annotation.SuppressLint;
 import android.os.Build;
 import android.util.Base64;
 import android.util.Log;
 
 final class Utils {
+	
+	//Set this to true if you want to enable debugging (or set it to BuildConfig.DEBUG for convenience)
+	public final static boolean DEBUG = false;
 	
 	private final static char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
 	private final static String TAG = "Utils";
@@ -40,7 +44,7 @@ final class Utils {
 	// -- Key/value -- //
 	
 	static Map<String, String> keyValueStringToMap(String query) {
-		if (BuildConfig.DEBUG) { Log.i(TAG, "keyValueStringToMap()"); }
+		if (Utils.DEBUG) { Log.i(TAG, "keyValueStringToMap()"); }
 		
         // Create Map to store the parameters
         Map<String, String> result = new HashMap<String, String>();
@@ -51,10 +55,10 @@ final class Utils {
         {
             String[] pair = param.split("="); // $NON-NLS-1$
             if (pair.length == 2) {
-            	if (BuildConfig.DEBUG) { Log.i(TAG, "Found " + pair[0] + "=" + pair[1]); }
+            	if (Utils.DEBUG) { Log.i(TAG, "Found " + pair[0] + "=" + pair[1]); }
             	result.put(pair[0], pair[1]);
             } else {
-            	if (BuildConfig.DEBUG) { Log.w(TAG, "Skipping " + param); }
+            	if (Utils.DEBUG) { Log.w(TAG, "Skipping " + param); }
             }
         }
         
@@ -64,7 +68,7 @@ final class Utils {
 	// -- Hashing -- //
 	
 	static String md5(String s) {
-		if (BuildConfig.DEBUG) { Log.i(TAG, "md5()"); }
+		if (Utils.DEBUG) { Log.i(TAG, "md5()"); }
 		
 		String result = "";
 		
@@ -74,7 +78,7 @@ final class Utils {
 			m.update(s.getBytes(),0,s.length());
 			result = byteArrayToHexString(m.digest());
 		} catch (final NoSuchAlgorithmException nsae) {
-			if (BuildConfig.DEBUG) { nsae.printStackTrace(); }
+			if (Utils.DEBUG) { nsae.printStackTrace(); }
 		}
 		
 		return result;
@@ -113,6 +117,7 @@ final class Utils {
 		return base64Encode(data);
 	}
 	
+	@SuppressLint({ "NewApi", "InlinedApi" })
 	static String base64Encode(byte[] data) {
 		String result = null;
 		
@@ -120,7 +125,7 @@ final class Utils {
 			try {
 				result = OldBase64.encodeBytes(data, OldBase64.URL_SAFE).replace("=", "");
 			} catch (final IOException ioe) {
-				if (BuildConfig.DEBUG) { ioe.printStackTrace(); }
+				if (Utils.DEBUG) { ioe.printStackTrace(); }
 			}
 		} else {
 			result = Base64.encodeToString(data, Base64.NO_PADDING | Base64.URL_SAFE | Base64.NO_WRAP);
@@ -147,7 +152,7 @@ final class Utils {
 		try {
 			result.put(key, value);
 		} catch (JSONException e) {
-			if (BuildConfig.DEBUG) { e.printStackTrace(); }
+			if (Utils.DEBUG) { e.printStackTrace(); }
 		}
 		
 		return result;
